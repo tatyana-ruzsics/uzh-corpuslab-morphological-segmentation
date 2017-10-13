@@ -16,8 +16,8 @@ from cam.sgnmt import utils
 from cam.sgnmt.decoding import core
 import decode_utils_segm as decode_utils
 #from cam.sgnmt import decode_utils
-from cam.sgnmt.ui import get_args, get_parser, validate_args
-
+#from cam.sgnmt.ui import get_args, get_parser, validate_args
+from ui_segm import get_args, get_parser, validate_args
 
 # UTF-8 support
 if sys.version_info < (3, 0):

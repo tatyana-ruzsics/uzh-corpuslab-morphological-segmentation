@@ -42,6 +42,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     filename_src = args.input[0]
     filename_trg = args.input[1]
-    filename_shufffled_src = args.input[2]
-    filename_shufffled_trg = args.input[3]
     shuffle_lines(filename_src, filename_trg)

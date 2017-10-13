@@ -1,8 +1,8 @@
 #!/bin/bash
 # Usage: Main.sh PATHtoDATA PATHtoWorkingDir ResultsFolderName NMT_ENSEMBLES BEAM USE_LENGTH_CONTROL
-# Usage: Main.sh /Users/tatianaruzsics/NN/Segmentation/data/canonical-segmentation/indonesian/ /Users/tatianaruzsics/NN/Segmentation/experiments/ind results-aug17/beam3 5 3 -l
-# Usage: Main.sh /Users/tatianaruzsics/NN/Segmentation/data/canonical-segmentation/german/ /Users/tatianaruzsics/NN/Segmentation/experiments/ger results-aug17/beam3 5 3 -l
-# Usage: Main.sh /Users/tatianaruzsics/NN/Segmentation/data/canonical-segmentation/english/ /Users/tatianaruzsics/NN/Segmentation/experiments/eng results-aug17/beam3 5 3 -l
+# Usage: Main.sh ./data/canonical-segmentation/indonesian/ ./experiments/ind results 5 3 -l
+# Usage: Main.sh ./data/canonical-segmentation/german/ ./experiments/ger results 5 3 -l
+# Usage: Main.sh ./data/canonical-segmentation/english/ ./experiments/eng results 5 3 -l
 ###########################################
 ## POINTERS TO WORKING AND DATA DIRECTORIES
 ###########################################
@@ -11,17 +11,17 @@ export DATA=$1
 mkdir $DATA
 export EXPER=$2
 mkdir $EXPER
-export SCRIPTS=/Users/tatianaruzsics/NN/Segmentation/scripts
-export SEGM=/Users/tatianaruzsics/NN/Segmentation/SEGM
+export SCRIPTS=./scripts
+export SEGM=./SEGM
 export THEANO_FLAGS="on_unused_input='ignore'"
 
 #LM paths
-export LD_LIBRARY_PATH=/Users/tatianaruzsics/NN/Segmentation/swig-srilm:$LD_LIBRARY_PATH
-export PYTHONPATH=/Users/tatianaruzsics/NN/Segmentation/swig-srilm:$PYTHONPATH
-export PATH=/Users/tatianaruzsics/NN/Segmentation/SRILM/bin/macosx:$PATH
+export LD_LIBRARY_PATH=./swig-srilm:$LD_LIBRARY_PATH
+export PYTHONPATH=./swig-srilm:$PYTHONPATH
+export PATH=./SRILM/bin/macosx:$PATH
 
 #MERT path
-export MERT=/Users/tatianaruzsics/NN/Segmentation/zmert_v1.50
+export MERT=./zmert_v1.50
 
 
 #n is the number of train/test/dev split in data/canonical-segmentation to use
@@ -89,17 +89,17 @@ echo "TrgVocabSize: $TrgVocab"
 # TRAINING NMT
 ##########################################
 
-##Shuffle
-#
-#for (( k=1; k<=5; k++ ))
-#do
-#
-#mkdir $MODEL/$k
-#python2.7 $SCRIPTS/shuffle.py -s=$k $EXPER_DATA/train.iwords $EXPER_DATA/train.isegs
-#
-#python $SEGM/train.py --finish_after=20 --reload=False --bleu_val_freq=1 --val_burn_in=10 --reshuffle --saveto=$MODEL/$k --results_out=$MODEL/$k/results_per_epoch.txt --src_vocab_size=$SrcVocab --trg_vocab_size=$TrgVocab  --val_set=$EXPER_DATA/dev.iwords  --val_set_grndtruth=$EXPER_DATA/dev.segs --bleu_script=$SCRIPTS/accuracy.py --trg_data=$EXPER_DATA/train.isegs-shuf --src_data=$EXPER_DATA/train.iwords-shuf --trg_wmap=$EXPER_DATA/vocab.segs --val_set_in=$EXPER_DATA/dev.words --val_set_out=$EXPER_DATA/val_out.txt
-#
-#done
+#Shuffle
+
+for (( k=1; k<=5; k++ ))
+do
+
+mkdir $MODEL/$k
+python2.7 $SCRIPTS/shuffle.py -s=$k $EXPER_DATA/train.iwords $EXPER_DATA/train.isegs
+
+python $SEGM/train.py --finish_after=20 --reload=False --bleu_val_freq=1 --val_burn_in=10 --reshuffle --saveto=$MODEL/$k --results_out=$MODEL/$k/results_per_epoch.txt --src_vocab_size=$SrcVocab --trg_vocab_size=$TrgVocab  --val_set=$EXPER_DATA/dev.iwords  --val_set_grndtruth=$EXPER_DATA/dev.segs --bleu_script=$SCRIPTS/accuracy.py --trg_data=$EXPER_DATA/train.isegs-shuf --src_data=$EXPER_DATA/train.iwords-shuf --trg_wmap=$EXPER_DATA/vocab.segs --val_set_in=$EXPER_DATA/dev.words --val_set_out=$EXPER_DATA/val_out.txt
+
+done
 
 ############################################
 # DECODING NMT + EVALUATION on dev
@@ -115,30 +115,30 @@ while read num; do nmt_predictors+=",nmt"; done < <(seq $(($NMT_ENSEMBLES-1)))
 while read num; do nmt_path+=" --nmt_path$num=$MODEL/$num"; done < <(seq 2 $NMT_ENSEMBLES)
 fi
 
-#decode_cmd_dev="python $SEGM/decode_segm.py --predictors $nmt_predictors --decoder vanilla --nmt_config src_vocab_size=$SrcVocab,trg_vocab_size=$TrgVocab $nmt_path --src_wmap=$EXPER_DATA/vocab.words --trg_wmap=$EXPER_DATA/vocab.segs  --src_test=$EXPER_DATA/dev.words --outputs=text --output_path=$RESULTS/$n/dev_out_vanilla.txt --beam=$BEAM"
-#
-#echo $decode_cmd_dev
-#
-#eval $decode_cmd_dev
-#
-## Evaluate on types and print errors
-#
-#python2.7 $SCRIPTS/accuracy-err.py $RESULTS/$n/dev_out_vanilla.txt  $EXPER_DATA/dev.segs $RESULTS/$n/Accuracy_vanilla_dev.txt > $RESULTS/$n/Errors_vanilla_dev.txt
-#
+decode_cmd_dev="python $SEGM/decode_segm.py --predictors $nmt_predictors --decoder vanilla --nmt_config src_vocab_size=$SrcVocab,trg_vocab_size=$TrgVocab $nmt_path --src_wmap=$EXPER_DATA/vocab.words --trg_wmap=$EXPER_DATA/vocab.segs  --src_test=$EXPER_DATA/dev.words --outputs=text --output_path=$RESULTS/$n/dev_out_vanilla.txt --beam=$BEAM"
+
+echo $decode_cmd_dev
+
+eval $decode_cmd_dev
+
+# Evaluate on types and print errors
+
+python2.7 $SCRIPTS/accuracy-err.py $RESULTS/$n/dev_out_vanilla.txt  $EXPER_DATA/dev.segs $RESULTS/$n/Accuracy_vanilla_dev.txt > $RESULTS/$n/Errors_vanilla_dev.txt
+
 ###########################################
 ## DECODING NMT + EVALUATION on test
 ###########################################
-#
-#decode_cmd_test="python $SEGM/decode_segm.py --predictors $nmt_predictors --decoder vanilla --nmt_config src_vocab_size=$SrcVocab,trg_vocab_size=$TrgVocab $nmt_path --src_wmap=$EXPER_DATA/vocab.words --trg_wmap=$EXPER_DATA/vocab.segs  --src_test=$EXPER_DATA/test.words --outputs=text --output_path=$RESULTS/$n/test_out_vanilla.txt --beam=$BEAM"
-#
-#echo $decode_cmd_test
-#
-#eval $decode_cmd_test
-#
-## Evaluate on types and print errors
-#
-#python2.7 $SCRIPTS/accuracy-err.py $RESULTS/$n/test_out_vanilla.txt  $EXPER_DATA/test.segs $RESULTS/$n/Accuracy_vanilla_test.txt > $RESULTS/$n/Errors_vanilla_test.txt
-#
+
+decode_cmd_test="python $SEGM/decode_segm.py --predictors $nmt_predictors --decoder vanilla --nmt_config src_vocab_size=$SrcVocab,trg_vocab_size=$TrgVocab $nmt_path --src_wmap=$EXPER_DATA/vocab.words --trg_wmap=$EXPER_DATA/vocab.segs  --src_test=$EXPER_DATA/test.words --outputs=text --output_path=$RESULTS/$n/test_out_vanilla.txt --beam=$BEAM"
+
+echo $decode_cmd_test
+
+eval $decode_cmd_test
+
+# Evaluate on types and print errors
+
+python2.7 $SCRIPTS/accuracy-err.py $RESULTS/$n/test_out_vanilla.txt  $EXPER_DATA/test.segs $RESULTS/$n/Accuracy_vanilla_test.txt > $RESULTS/$n/Errors_vanilla_test.txt
+
 ##########################################
 # LM
 ##########################################

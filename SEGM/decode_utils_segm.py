@@ -19,7 +19,9 @@ from predictors import WordCountPredictorSegm,Word2charPredictorSegm,SRILMPredic
 from output_segm import NBestOutputHandler,TextOutputHandler
 from trainers import blocks_get_default_nmt_config
 
-from cam.sgnmt import ui
+import ui_segm as ui
+
+#from cam.sgnmt import ui
 from cam.sgnmt import utils
 from cam.sgnmt.blocks.nmt import blocks_get_nmt_predictor, \
                                 blocks_get_nmt_vanilla_decoder#, \

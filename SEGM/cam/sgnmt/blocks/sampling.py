@@ -75,8 +75,8 @@ class BleuValidator(SimpleExtension):
         self.normalize = normalize
         self.best_models = []
         self.val_bleu_curve = []
-        self.multibleu_cmd = (self.config['bleu_script'] % self.config['val_set_grndtruth']).split()
-        logging.debug("BLEU command: %s" % self.multibleu_cmd)
+        #self.multibleu_cmd = (self.config['bleu_script'] % self.config['val_set_grndtruth']).split()
+        #logging.debug("BLEU command: %s" % self.multibleu_cmd)
 
         self.src_sparse_feat_map = config['src_sparse_feat_map'] if config['src_sparse_feat_map'] \
                                                                  else FlatSparseFeatMap()
