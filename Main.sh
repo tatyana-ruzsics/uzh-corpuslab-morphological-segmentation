@@ -26,7 +26,7 @@ export MERT=/Users/tatianaruzsics/NN/Segmentation/zmert_v1.50
 
 #n is the number of train/test/dev split in data/canonical-segmentation to use
 
-for (( n=0; n<=0; n++ ))
+for (( n=0; n<=5; n++ ))
 
 
 #for n in {0,1}
@@ -89,17 +89,17 @@ echo "TrgVocabSize: $TrgVocab"
 # TRAINING NMT
 ##########################################
 
-#Shuffle
+Shuffle
 
-#for (( k=1; k<=$NMT_ENSEMBLES; k++ ))
-#do
-#
-#mkdir $MODEL/$k
-#python2.7 $SCRIPTS/shuffle.py -s=$k $EXPER_DATA/train.iwords $EXPER_DATA/train.isegs
-#
-#python /Users/tatianaruzsics/NN/Segmentation/SEGM-original/train.py --finish_after=20 --reload=False --bleu_val_freq=1 --val_burn_in=10 --reshuffle --saveto=$MODEL/$k --results_out=$MODEL/$k/results_per_epoch.txt --src_vocab_size=$SrcVocab --trg_vocab_size=$TrgVocab  --val_set=$EXPER_DATA/dev.iwords  --val_set_grndtruth=$EXPER_DATA/dev.segs --bleu_script=$SCRIPTS/accuracy.py --trg_data=$EXPER_DATA/train.isegs-shuf --src_data=$EXPER_DATA/train.iwords-shuf --trg_wmap=$EXPER_DATA/vocab.segs --val_set_in=$EXPER_DATA/dev.words --val_set_out=$EXPER_DATA/val_out.txt
-#
-#done
+for (( k=1; k<=$NMT_ENSEMBLES; k++ ))
+do
+
+mkdir $MODEL/$k
+python2.7 $SCRIPTS/shuffle.py -s=$k $EXPER_DATA/train.iwords $EXPER_DATA/train.isegs
+
+python /Users/tatianaruzsics/NN/Segmentation/SEGM-original/train.py --finish_after=20 --reload=False --bleu_val_freq=1 --val_burn_in=10 --reshuffle --saveto=$MODEL/$k --results_out=$MODEL/$k/results_per_epoch.txt --src_vocab_size=$SrcVocab --trg_vocab_size=$TrgVocab  --val_set=$EXPER_DATA/dev.iwords  --val_set_grndtruth=$EXPER_DATA/dev.segs --bleu_script=$SCRIPTS/accuracy.py --trg_data=$EXPER_DATA/train.isegs-shuf --src_data=$EXPER_DATA/train.iwords-shuf --trg_wmap=$EXPER_DATA/vocab.segs --val_set_in=$EXPER_DATA/dev.words --val_set_out=$EXPER_DATA/val_out.txt
+
+done
 
 ############################################
 # DECODING NMT + EVALUATION on dev
