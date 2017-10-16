@@ -1,0 +1,8 @@
+@article{Zaidan09zmert,
+  author  = {Omar F. Zaidan},
+  title   = {{Z-MERT}: A Fully Configurable Open Source Tool for Minimum Error Rate Training of Machine Translation Systems},
+  journal = {The Prague Bulletin of Mathematical Linguistics},
+  volume  = {91},
+  pages   = {79--88},
+  year    = {2009}
+}

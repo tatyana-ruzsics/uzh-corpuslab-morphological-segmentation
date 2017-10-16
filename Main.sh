@@ -1,8 +1,8 @@
 #!/bin/bash
-# Usage: Main.sh PATHtoDATA PATHtoWorkingDir ResultsFolderName NMT_ENSEMBLES BEAM USE_LENGTH_CONTROL
-# Usage: Main.sh ./data/canonical-segmentation/indonesian/ ./experiments/ind results 5 3 -l
-# Usage: Main.sh ./data/canonical-segmentation/german/ ./experiments/ger results 5 3 -l
-# Usage: Main.sh ./data/canonical-segmentation/english/ ./experiments/eng results 5 3 -l
+# Usage: Main.sh AbsolutePATHtoDATA AbsolutePATHtoWorkingDir ResultsFolderName NMT_ENSEMBLES BEAM USE_LENGTH_CONTROL
+# Usage: Main.sh /Users/tatianaruzsics/NN/Segmentation/data/canonical-segmentation/indonesian/ /Users/tatianaruzsics/NN/Segmentation/experiments/ind results 5 3 -l
+# Usage: Main.sh /Users/tatianaruzsics/NN/Segmentation/data/canonical-segmentation/german/ /Users/tatianaruzsics/NN/Segmentation/experiments/ger results 5 3 -l
+# Usage: Main.sh /Users/tatianaruzsics/NN/Segmentation/data/canonical-segmentation/english/ /Users/tatianaruzsics/NN/Segmentation/experiments/eng results 5 3 -l
 ###########################################
 ## POINTERS TO WORKING AND DATA DIRECTORIES
 ###########################################
@@ -11,22 +11,22 @@ export DATA=$1
 mkdir $DATA
 export EXPER=$2
 mkdir $EXPER
-export SCRIPTS=./scripts
-export SEGM=./SEGM
+export SCRIPTS=/Users/tatianaruzsics/NN/Segmentation/scripts
+export SEGM=/Users/tatianaruzsics/NN/Segmentation/SEGM
 export THEANO_FLAGS="on_unused_input='ignore'"
 
 #LM paths
-export LD_LIBRARY_PATH=./swig-srilm:$LD_LIBRARY_PATH
-export PYTHONPATH=./swig-srilm:$PYTHONPATH
-export PATH=./SRILM/bin/macosx:$PATH
+export LD_LIBRARY_PATH=/Users/tatianaruzsics/NN/Segmentation/swig-srilm:$LD_LIBRARY_PATH
+export PYTHONPATH=/Users/tatianaruzsics/NN/Segmentation/swig-srilm:$PYTHONPATH
+export PATH=/Users/tatianaruzsics/NN/Segmentation/SRILM/bin/macosx:$PATH
 
 #MERT path
-export MERT=./zmert_v1.50
+export MERT=/Users/tatianaruzsics/NN/Segmentation/zmert_v1.50
 
 
 #n is the number of train/test/dev split in data/canonical-segmentation to use
 
-for (( n=0; n<=4; n++ ))
+for (( n=0; n<=0; n++ ))
 
 
 #for n in {0,1}
@@ -91,15 +91,15 @@ echo "TrgVocabSize: $TrgVocab"
 
 #Shuffle
 
-for (( k=1; k<=5; k++ ))
-do
-
-mkdir $MODEL/$k
-python2.7 $SCRIPTS/shuffle.py -s=$k $EXPER_DATA/train.iwords $EXPER_DATA/train.isegs
-
-python $SEGM/train.py --finish_after=20 --reload=False --bleu_val_freq=1 --val_burn_in=10 --reshuffle --saveto=$MODEL/$k --results_out=$MODEL/$k/results_per_epoch.txt --src_vocab_size=$SrcVocab --trg_vocab_size=$TrgVocab  --val_set=$EXPER_DATA/dev.iwords  --val_set_grndtruth=$EXPER_DATA/dev.segs --bleu_script=$SCRIPTS/accuracy.py --trg_data=$EXPER_DATA/train.isegs-shuf --src_data=$EXPER_DATA/train.iwords-shuf --trg_wmap=$EXPER_DATA/vocab.segs --val_set_in=$EXPER_DATA/dev.words --val_set_out=$EXPER_DATA/val_out.txt
-
-done
+#for (( k=1; k<=$NMT_ENSEMBLES; k++ ))
+#do
+#
+#mkdir $MODEL/$k
+#python2.7 $SCRIPTS/shuffle.py -s=$k $EXPER_DATA/train.iwords $EXPER_DATA/train.isegs
+#
+#python /Users/tatianaruzsics/NN/Segmentation/SEGM-original/train.py --finish_after=20 --reload=False --bleu_val_freq=1 --val_burn_in=10 --reshuffle --saveto=$MODEL/$k --results_out=$MODEL/$k/results_per_epoch.txt --src_vocab_size=$SrcVocab --trg_vocab_size=$TrgVocab  --val_set=$EXPER_DATA/dev.iwords  --val_set_grndtruth=$EXPER_DATA/dev.segs --bleu_script=$SCRIPTS/accuracy.py --trg_data=$EXPER_DATA/train.isegs-shuf --src_data=$EXPER_DATA/train.iwords-shuf --trg_wmap=$EXPER_DATA/vocab.segs --val_set_in=$EXPER_DATA/dev.words --val_set_out=$EXPER_DATA/val_out.txt
+#
+#done
 
 ############################################
 # DECODING NMT + EVALUATION on dev

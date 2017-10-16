@@ -9,7 +9,7 @@ import argparse
 import logging
 import os
 
-from trainers import blocks_add_nmt_config
+from blocks_trainers import blocks_add_nmt_config
 
 
 YAML_AVAILABLE = True

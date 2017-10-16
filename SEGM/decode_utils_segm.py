@@ -17,14 +17,14 @@ import traceback
 from decoders import BeamDecoderSegm,SyncBeamDecoderSegm
 from predictors import WordCountPredictorSegm,Word2charPredictorSegm,SRILMPredictorSegm
 from output_segm import NBestOutputHandler,TextOutputHandler
-from trainers import blocks_get_default_nmt_config
+from blocks_trainers import blocks_get_default_nmt_config,blocks_get_nmt_predictor,blocks_get_nmt_vanilla_decoder
 
 import ui_segm as ui
 
 #from cam.sgnmt import ui
 from cam.sgnmt import utils
-from cam.sgnmt.blocks.nmt import blocks_get_nmt_predictor, \
-                                blocks_get_nmt_vanilla_decoder#, \
+#from cam.sgnmt.blocks.nmt import blocks_get_nmt_predictor, \
+#                                blocks_get_nmt_vanilla_decoder, \
 #    blocks_get_default_nmt_config
 from cam.sgnmt.decoding import core
 #from cam.sgnmt.decoding.astar import AstarDecoder

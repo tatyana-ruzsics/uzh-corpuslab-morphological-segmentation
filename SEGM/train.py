@@ -4,8 +4,9 @@
     from trainers.py
 """
 
-from trainers import AccValidator, blocks_get_default_nmt_config
+from blocks_trainers import AccValidator, blocks_get_default_nmt_config
 from ui_segm import get_blocks_train_parser
+from blocks_model import NMTModel
 
 from blocks.extensions import FinishAfter, Printing, SimpleExtension
 from blocks.extensions.monitoring import TrainingDataMonitoring
@@ -26,7 +27,7 @@ from cam.sgnmt import utils
 from cam.sgnmt.blocks import stream
 from cam.sgnmt.blocks.pruning import PruningGradientDescent
 from cam.sgnmt.blocks.checkpoint import CheckpointNMT, LoadNMT
-from cam.sgnmt.blocks.model import NMTModel
+#from cam.sgnmt.blocks.model import NMTModel
 #from cam.sgnmt.blocks.nmt import blocks_get_default_nmt_config
 #from cam.sgnmt.blocks.sampling import BleuValidator
 from cam.sgnmt.blocks.stream import ParallelSourceSwitchDataset, \
