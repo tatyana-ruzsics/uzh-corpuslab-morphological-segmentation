@@ -26,7 +26,7 @@ export MERT=/Users/tatianaruzsics/NN/Segmentation/zmert_v1.50
 
 #n is the number of train/test/dev split in data/canonical-segmentation to use
 
-for (( n=0; n<=5; n++ ))
+for (( n=0; n<=4; n++ ))
 
 
 #for n in {0,1}
