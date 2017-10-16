@@ -10,14 +10,14 @@ The code uses [SGNMT](http://ucam-smt.github.io/sgnmt/html/index.html) framework
 The main executable is Main.sh:
 
 ```
-Main.sh PATHtoDATA PATHtoWorkingDir ResultsFolderName NMT_ENSEMBLES BEAM USE_LENGTH_CONTROL
+Main.sh AbsolutePATHtoDATA AbsolutePATHtoWorkingDir ResultsFolderName NMT_ENSEMBLES BEAM USE_LENGTH_CONTROL
 ```
 
 
 #### Running the experiments in the paper
 The data folder contains the [datasets for canonical segmentation](https://github.com/ryancotterell/canonical-segmentation). 
 ```
-Main.sh /data/canonical-segmentation/indonesian/ /experiments/ind results 5 12 -l
-Main.sh /data/canonical-segmentation/german/ /experiments/ger results 5 12 -l
-Main.sh /data/canonical-segmentation/english/ /experiments/eng results 5 12 -l
+Main.sh "Absolute path to /data/canonical-segmentation/indonesian/" "Absolute path to a working dir" results 5 12 -l
+Main.sh "Absolute path to /data/canonical-segmentation/german/" "Absolute path to a working dir" results 5 12 -l
+Main.sh "Absolute path to /data/canonical-segmentation/english/" "Absolute path to a working dir" results 5 12 -l
 ```
