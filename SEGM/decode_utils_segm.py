@@ -141,6 +141,7 @@ def add_predictors(decoder):
             return
     
     pred_weight = 1.0
+    level = 'c'
     try:
         for idx,pred in enumerate(preds): # Add predictors one by one
             wrappers = []
@@ -233,7 +234,8 @@ def add_predictors(decoder):
 #                                 minimize_rtns=args.minimize_rtns,
 #                                 rmeps=args.remove_epsilon_in_rtns)
             elif pred == "srilm":
-                p = SRILMPredictorSegm(args.srilm_path, args.srilm_order, args.srilm_convert_to_ln)
+                p = SRILMPredictorSegm(_get_override_args("srilm_path"), _get_override_args("srilm_order"), args.srilm_convert_to_ln)
+            #p = SRILMPredictorSegm(args.srilm_path, args.srilm_order, args.srilm_convert_to_ln)
 #                p = SRILMPredictor(args.srilm_path, 
 #                                   args.srilm_order, 
 #                                   args.srilm_convert_to_ln)
@@ -647,10 +649,13 @@ def do_decode(decoder,
 #                    src = [int(x) for x in src]
             start_hypo_time = time.time()
             decoder.apply_predictors_count = 0
-            if isinstance(src[0], list):
+            try:
+                if isinstance(src[0], list):
                 # Don't apply wordmap for multiple inputs
-                hypos = [hypo for hypo in decoder.decode(src)
-                            if hypo.total_score > args.min_score]
+                    hypos = [hypo for hypo in decoder.decode(src)
+                                if hypo.total_score > args.min_score]
+            except IndexError:
+                print src
             else:
                 hypos = [hypo 
                          for hypo in decoder.decode(utils.apply_src_wmap(src))

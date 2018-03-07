@@ -11,7 +11,7 @@ class BeamDecoderSegm(BeamDecoder):
     def __init__(self, *args, **kwargs):
     
         super(BeamDecoderSegm, self).__init__(*args)
-
+    
     def _expand_hypo_nmt(self, hypo):
         """Get the best beam size expansions of ``hypo`` by one CHAR based on nmt predictor scores only.
         
@@ -31,6 +31,8 @@ class BeamDecoderSegm(BeamDecoder):
         hypo.predictor_states = self.get_predictor_states()
         nmt_only_scores = {k: sum([v[i][0] for i,s in enumerate(v) if self.predictor_names[i]=="nmt"]) for k, v in score_breakdown.items()}
         top = utils.argmax_n(nmt_only_scores, self.beam_size)
+#        char_only_scores = {k: sum([v[i][0] for i,s in enumerate(v) if self.predictor_levels[i]=="c"]) for k, v in score_breakdown.items()}
+#        top = utils.argmax_n(char_only_scores, self.beam_size)
         return [hypo.cheap_expand(
                                   trgt_word,
                                   posterior[trgt_word],
@@ -162,7 +164,7 @@ class SyncBeamDecoderSegm(BeamDecoderSegm):
             '</w>' from ``utils.trg_cmap``
             max_word_len (int): Maximum length of a single word
             """
-        super(BeamDecoderSegm, self).__init__(decoder_args,
+        super(SyncBeamDecoderSegm, self).__init__(decoder_args,
                                               hypo_recombination,
                                               beam_size,
                                               pure_heuristic_scores,
@@ -205,9 +207,9 @@ class SyncBeamDecoderSegm(BeamDecoderSegm):
             next_hypos = []
             next_scores = []
             for hypo in hypos:
-                # Combined nmt predictors score for the chars in a next morpheme (we look for a best morpheme expansion of the input_hypo)
-#                next_score = sum([sum([char_scores[i][0] for i,s in enumerate(char_scores) if self.predictor_names[i]=="nmt"]) for char_scores in hypo.score_breakdown[input_hypo_len:]])
+                # Combined predictors score for the chars in a next morpheme (we look for a best morpheme expansion of the input_hypo)
                 next_score = sum([sum([char_scores[i][0] for i,s in enumerate(char_scores) if self.predictor_names[i]=="nmt"]) for char_scores in hypo.score_breakdown])
+#                next_score = sum([sum([char_scores[i][0] for i,s in enumerate(char_scores) if self.predictor_levels[i]=="c"]) for char_scores in hypo.score_breakdown])
                 logging.debug(u"CONTINUATION: {} -> {}, {}".format(utils.apply_trg_wmap(hypo.trgt_sentence),next_score, hypo.score))
                 if self._is_closed(hypo):
                     next_hypos.append(hypo)
@@ -216,8 +218,8 @@ class SyncBeamDecoderSegm(BeamDecoderSegm):
                     continue
                 for next_hypo in super(SyncBeamDecoderSegm, self)._expand_hypo_nmt(hypo):
                     next_hypos.append(next_hypo)
-#                    next_score = sum([sum([char_scores[i][0] for i,s in enumerate(char_scores) if self.predictor_names[i]=="nmt"]) for char_scores in next_hypo.score_breakdown[input_hypo_len:]])
                     next_score = sum([sum([char_scores[i][0] for i,s in enumerate(char_scores) if self.predictor_names[i]=="nmt"]) for char_scores in next_hypo.score_breakdown])
+#                    next_score = sum([sum([char_scores[i][0] for i,s in enumerate(char_scores) if self.predictor_levels[i]=="c"]) for char_scores in next_hypo.score_breakdown])
                     next_scores.append(next_score)
                     logging.debug(u"EXPAND: {} -> {}, {}".format(utils.apply_trg_wmap(next_hypo.trgt_sentence),next_score,next_hypo.score))
             logging.debug(u"BEFORE CUT on ITERATION: {} -> {}".format(it, " && ".join(utils.apply_trg_wmap(h.trgt_sentence) + ", " + str(next_scores[i]) for i,h in enumerate(next_hypos))))
@@ -228,6 +230,7 @@ class SyncBeamDecoderSegm(BeamDecoderSegm):
         # Best final expansion of the initial hypo by morphemes
         for hypo in hypos:
             logging.debug(u"SYNCRESULT {} {}".format(utils.apply_trg_wmap(hypo.trgt_sentence), sum([sum([char_scores[i][0]  for i,s in enumerate(char_scores) if self.predictor_names[i]=="nmt"]) for char_scores in hypo.score_breakdown])))
+#            logging.debug(u"SYNCRESULT {} {}".format(utils.apply_trg_wmap(hypo.trgt_sentence), sum([sum([char_scores[i][0]  for i,s in enumerate(char_scores) if self.predictor_levels[i]=="c"]) for char_scores in hypo.score_breakdown])))
 
         return hypos
 

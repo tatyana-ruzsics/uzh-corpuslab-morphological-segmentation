@@ -1100,6 +1100,10 @@ def get_parser():
                         help="Overrides --nmt_path for the %s nmt" % w)
         group.add_argument("--nmt_engine%s" % n, default="",
                         help="Overrides --nmt_engine for the %s nmt" % w)
+        group.add_argument("--srilm_path%s" % n, default="",
+                        help="Overrides --srilm_path for the %s srilm" % w)
+        group.add_argument("--srilm_order%s" % n, default=5, type=int,
+                        help="Overrides --srilm_order for the %s srilm" % w)
         group.add_argument("--t2t_model%s" % n, default="",
                         help="Overrides --t2t_model for the %s t2t predictor"
                         % w)

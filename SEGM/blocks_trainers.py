@@ -27,6 +27,7 @@ import sys
 from cam.sgnmt import utils
 from cam.sgnmt.blocks.sparse_search import SparseBeamSearch
 from cam.sgnmt.misc.sparse import FlatSparseFeatMap
+from cam.sgnmt.blocks.sampling import ModelInfo
 
 BLOCKS_AVAILABLE = True
 try:

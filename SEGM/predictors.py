@@ -162,7 +162,7 @@ class WordCountPredictorSegm(WordCountPredictor):
         if len(self.history)!=0:
             penalty = -abs((len(self.history)-self.src_len)/self.src_len)
             logging.debug(u"penalty: {}".format(penalty))
-            penalty = -math.log(-penalty+1)
+            #penalty = -math.log(-penalty+1)
             
             self.posterior = {utils.EOS_ID : penalty}
         else:
