@@ -3,7 +3,7 @@ This is mainly ``Predictor`` and ``Decoder``. Functionality should be
 implemented mainly in the ``predictors`` package for predictors and in
 the ``decoding.decoder`` module for decoders.
 """
-
+from memory_profiler import profile
 from abc import abstractmethod
 import copy
 
@@ -418,7 +418,10 @@ class Decoder(Observable):
             with open(decoder_args.score_lower_bounds_file) as f:
                 for line in f:
                     self.lower_bounds.append(float(line.strip()))
-    
+
+#        self.posterior = None
+#        self.score_breakdown =None
+
     def add_predictor(self, name, predictor, weight=1.0):
         """Adds a predictor to the decoder. This means that this 
         predictor is going to be used to predict the next target word
@@ -558,6 +561,7 @@ class Decoder(Observable):
                 unrestricted.append(posterior)
         return restricted, unrestricted
     
+#    @profile
     def apply_predictors(self):
         """Get the distribution over the next word by combining the
         predictor scores.
@@ -572,7 +576,7 @@ class Decoder(Observable):
         bounded_predictors = [el for el in self.predictors 
                         if not isinstance(el[0], UnboundedVocabularyPredictor)]
         # Get bounded posteriors
-        bounded_posteriors = [p.predict_next() for (p, _) in bounded_predictors]
+        bounded_posteriors = np.array([p.predict_next() for (p, _) in bounded_predictors])
         non_zero_words = self._get_non_zero_words(bounded_predictors,
                                                   bounded_posteriors)
         if not non_zero_words: # Special case: no word is possible
@@ -594,8 +598,10 @@ class Decoder(Observable):
             del ret[0][utils.UNK_ID]
             del ret[1][utils.UNK_ID]
         self.notify_observers(ret, message_type = MESSAGE_TYPE_POSTERIOR)
+#        self.posterior,self.score_breakdown = ret
+#        return
         return ret
-    
+
     def _combine_posteriors_norm_none(self,
                                       non_zero_words,
                                       posteriors,

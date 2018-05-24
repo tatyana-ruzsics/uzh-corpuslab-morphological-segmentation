@@ -1,17 +1,24 @@
 # -*- coding: utf-8 -*-
 """Implementation of the beam search and "synchronized" beam search strategies used for morphological segmentation model (cED+LM)."""
 
+from memory_profiler import profile
 import copy
 import logging
 from cam.sgnmt import utils
 from cam.sgnmt.decoding.beam import BeamDecoder
+import numpy as np
+from cam.sgnmt.decoding.core import Hypothesis,PartialHypothesis
+import dynet as dy
+#from guppy import hpy
 
 class BeamDecoderSegm(BeamDecoder):
 
     def __init__(self, *args, **kwargs):
     
         super(BeamDecoderSegm, self).__init__(*args)
-    
+#        self.max_len = 30
+
+#    @profile
     def _expand_hypo_nmt(self, hypo):
         """Get the best beam size expansions of ``hypo`` by one CHAR based on nmt predictor scores only.
         
@@ -24,12 +31,22 @@ class BeamDecoderSegm(BeamDecoder):
         if hypo.score <= self.min_score:
             return []
         self.set_predictor_states(copy.deepcopy(hypo.predictor_states))
+#        self.set_predictor_states(hypo.predictor_states)
         if not hypo.word_to_consume is None: # Consume if cheap expand
             self.consume(hypo.word_to_consume)
             hypo.word_to_consume = None
         posterior,score_breakdown = self.apply_predictors()
+#        self.apply_predictors()
         hypo.predictor_states = self.get_predictor_states()
-        nmt_only_scores = {k: sum([v[i][0] for i,s in enumerate(v) if self.predictor_names[i]=="nmt"]) for k, v in score_breakdown.items()}
+#        nmt_only_scores = {k: sum([v[i][0] for i,s in enumerate(v) if self.predictor_names[i]=="nmt"]) for k, v in score_breakdown.items()}
+#        nmt_only_scores = np.array([v for k,v in sorted(nmt_only_scores.items(),key=lambda v:v[0])])
+#        
+        nmt_only_scores = np.array([sum([v[i][0] for i,s in enumerate(v) if self.predictor_names[i]=="nmt"]) for k,v in sorted(score_breakdown.items(),key=lambda t:t[0])])
+
+#        nmt_only_scores = np.array([sum([v[i][0] for i,s in enumerate(v) if self.predictor_names[i]=="nmt"]) for k,v in sorted(self.score_breakdown.items(),key=lambda t:t[0])])
+
+#        logging.debug(u'score_breakdown.items(): {}'.format(score_breakdown.items()))
+#        logging.debug(u'next nmt scores: {}'.format(nmt_only_scores))
         top = utils.argmax_n(nmt_only_scores, self.beam_size)
 #        char_only_scores = {k: sum([v[i][0] for i,s in enumerate(v) if self.predictor_levels[i]=="c"]) for k, v in score_breakdown.items()}
 #        top = utils.argmax_n(char_only_scores, self.beam_size)
@@ -37,21 +54,35 @@ class BeamDecoderSegm(BeamDecoder):
                                   trgt_word,
                                   posterior[trgt_word],
                                   score_breakdown[trgt_word]) for trgt_word in top]
+#        return [hypo.cheap_expand(
+#                                  trgt_word,
+#                                  self.posterior[trgt_word],
+#                                  self.score_breakdown[trgt_word]) for trgt_word in top]
 
+    def setup_max_len(self, src_sentence):
+        if len(src_sentence) > 50: #hack agains hyperlinks in the data
+            self.max_len = 0 #
+
+#    @profile
     def decode(self, src_sentence):
         """Decodes a single source sentence using beam search.
         Expands (beam size) hypotheses based on a sum of nmt predictors scores (_expand_hypo_nmt), cuts (beam size) the resulting continuation based on a combined predictors score."""
+        dy.renew_cg()
         self.initialize_predictors(src_sentence)
         hypos = self._get_initial_hypos()
+        self.setup_max_len(src_sentence)
+        logging.debug(u"Source len {}".format(len(src_sentence)))
+        logging.debug(u"MAX-ITER: {}".format(self.max_len))
         # Initial expansion
         for hypo in hypos:
             logging.debug(u"INIT {} {}".format(utils.apply_trg_wmap(hypo.trgt_sentence), hypo.score_breakdown))
         it = 0
         while self.stop_criterion(hypos):
-            logging.debug(u"ITER: {}".format(it))
+            logging.debug(u"ITER: {}, MAX-ITER: {}".format(it,self.max_len))
             if it > self.max_len: # prevent infinite loops
                 break
             it = it + 1
+            
             next_hypos = []
             next_scores = []
             self.min_score = utils.NEG_INF
@@ -106,6 +137,7 @@ class BeamDecoderSegm(BeamDecoder):
             logging.warn("No complete hypotheses found for %s" % src_sentence)
             for hypo in hypos:
                 self.add_full_hypo(hypo.generate_full_hypothesis())
+
         return self.get_full_hypos_sorted()
 
 
@@ -171,8 +203,8 @@ class SyncBeamDecoderSegm(BeamDecoderSegm):
                                               diversity_factor,
                                               early_stopping)
         self.sync_symb = sync_symb
-        self.max_word_len = max_word_len
-    
+        self.max_morf_len = max_word_len #default: 25
+
     def _is_closed(self, hypo):
         """Returns true if hypo ends with </S> or </W>"""
         return hypo.get_last_word() in [utils.EOS_ID, self.sync_symb]
@@ -183,6 +215,7 @@ class SyncBeamDecoderSegm(BeamDecoderSegm):
             if not self._is_closed(hypo):
                 return True
         return False
+#    @profile
     def _expand_hypo_nmt(self, input_hypo):
         """Get the best beam size expansions of ``hypo`` by one MORPHEME based on nmt predictor scores only, i.e. expand hypo until all of the beam size best hypotheses end with ``sync_symb`` or EOS. The implementation relies on '_expand_hypo_nmt' of the parent class BeamDecoderSegm which provides best beam size expansions of ``hypo`` by one CHAR based on nmt predictor scores only.
         
@@ -199,10 +232,11 @@ class SyncBeamDecoderSegm(BeamDecoderSegm):
         hypos = super(SyncBeamDecoderSegm, self)._expand_hypo_nmt(input_hypo)
         # input_hypo_len = len(input_hypo.score_breakdown)
         # Expand until all hypos are closed
-        it = 1
+        it = 0
         while self._all_eos_or_eow(hypos):
-            if it > self.max_word_len: # prevent infinite loops
+            if it > self.max_morf_len: # prevent infinite loops
                 break
+            logging.debug(u"SYNC BEAM ITER: {}".format(it))
             it = it + 1
             next_hypos = []
             next_scores = []

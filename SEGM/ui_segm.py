@@ -301,9 +301,10 @@ def get_parser():
                         "instead of their string representations.")
     group.add_argument("--en_test", default="",
                         help="DEPRECATED: Old name for --src_test")
-    group.add_argument("--indexing_scheme", default="blocks",
-                        choices=['blocks', 'tf', 't2t'],
+    group.add_argument("--indexing_scheme", default="dynet",
+                        choices=['dynet','blocks', 'tf', 't2t'],
                         help="This parameter defines the reserved IDs.\n\n"
+                        "* 'dynet': unk: 2, <s>: 0, </s>: 1.\n"
                         "* 'blocks': eps,unk: 0, <s>: 1, </s>: 2.\n"
                         "* 'tf': unk: 3, <s>: 1, </s>: 2.\n"
                         "* 't2t': unk: 3, <s>: 2, </s>: 1.")
@@ -803,8 +804,8 @@ def get_parser():
                         help="Defines the path to the NMT model. If empty, "
                         "the model is loaded from the default location which "
                         "depends on the NMT engine")
-    group.add_argument("--nmt_engine", default="blocks",
-                        choices=['none', 'blocks', 'tensorflow'],
+    group.add_argument("--nmt_engine", default="dynet",
+                        choices=['none', 'blocks', 'tensorflow', 'dynet'],
                         help="NMT implementation which should be used. "
                         "Use 'none' to disable NMT support.")
     group.add_argument("--nmt_model_selector", default="bleu",

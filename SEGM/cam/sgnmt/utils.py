@@ -77,6 +77,17 @@ def switch_to_t2t_indexing():
     EOS_ID = 1
     UNK_ID = 2 # Don't rely on this: UNK not standardized in T2T
 
+def switch_to_dynet_indexing():
+    """Calling this method overrides the global definitions of the
+        reserved  word ids ``GO_ID``, ``EOS_ID``, and ``UNK_ID``
+        with the tensor2tensor indexing scheme. This scheme is used in all
+        t2t models. """
+    global GO_ID
+    global EOS_ID
+    global UNK_ID
+    GO_ID = 0
+    EOS_ID = 1
+    UNK_ID = 2 # Don't rely on this: UNK not standardized in T2T
 
 # Log summation
 
@@ -236,7 +247,7 @@ def load_src_wmap(path):
         return src_wmap
     with codecs.open(path, encoding='utf-8') as f:
         src_wmap = dict(map(lambda e: (e[0], int(e[-1])),
-                        [line.strip().split() for line in f]))
+                        [line.rstrip().split('\t') for line in f]))
     return src_wmap
 
 
@@ -255,7 +266,7 @@ def load_trg_wmap(path):
         return trg_wmap
     with codecs.open(path, encoding='utf-8') as f:
         trg_wmap = dict(map(lambda e: (int(e[-1]), e[0]),
-                        [line.strip().split() for line in f]))
+                        [line.rstrip().split('\t') for line in f]))
     return trg_wmap
 
 
@@ -278,7 +289,7 @@ def load_trg_cmap(path):
     trg_cmap = {}
     with codecs.open(path, encoding='utf-8') as f:
         for line in f:
-            c,i = line.strip().split()
+            c,i = line.rstrip().split('\t')
             trg_cmap[c] = int(i)
     if not "</w>" in trg_cmap:
         logging.warn("Could not find </w> in char map.")

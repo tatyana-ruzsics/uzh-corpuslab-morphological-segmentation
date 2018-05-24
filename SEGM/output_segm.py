@@ -108,8 +108,9 @@ class NBestOutputHandler(OutputHandler):
                 #final_name = "%s%d" % (name, name_count[name])
                 final_name = name
             self.predictor_names.append(final_name.replace("_", "0"))
+        self.current_sen_id = start_sen_id
         
-    def write_hypos(self, all_hypos):
+    def write_hypos_all(self, all_hypos):
         """Writes the hypotheses in ``all_hypos`` to ``path`` """
         with codecs.open(self.path, "w", encoding='utf-8') as f:
             n_predictors = len(self.predictor_names)
@@ -129,4 +130,38 @@ class NBestOutputHandler(OutputHandler):
                              hypo.total_score))
                     f.write("\n")
                 idx += 1
+
+    def write_hypos(self, all_hypos):
+        """Writes the hypotheses in ``all_hypos`` to ``path`` """
+        n_predictors = len(self.predictor_names)
+        idx = self.current_sen_id
+        for hypos in all_hypos:
+            for hypo in hypos:
+                    self.f.write("%d ||| %s ||| %s ||| %f" %
+                            (idx,
+                             utils.apply_trg_wmap(hypo.trgt_sentence,
+                                                  self.trg_wmap),
+                             #                             ' '.join("%s=%f" % (
+                             #                                  self.predictor_names[i],
+                             #                                  sum([s[i][0] for s in hypo.score_breakdown]))
+                             #                                      for i in xrange(n_predictors)),
+                             ' '.join("%s" % (sum([s[i][0] for s in hypo.score_breakdown]))
+                                      for i in xrange(n_predictors)),
+                             hypo.total_score))
+                    self.f.write("\n")
+    #                idx += 1
+        self.current_sen_id +=1
+        self.f.flush()
+
+
+    def open_file(self):
+        self.f = codecs.open(self.path, "w", encoding='utf-8')
+    
+    def close_file(self):
+        self.f.close()
+
+    def write_empty_line(self):
+        if self.f is not None:
+            self.f.write("\n")
+            self.f.flush()
 

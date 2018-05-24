@@ -9,6 +9,7 @@ This script follows SGNMT decoder utils cam.sgnmt.decode_utils.py but adapted fo
 --> nmt trainers based on Blocks framework.
 """
 
+from memory_profiler import profile
 import logging
 import sys
 import time
@@ -18,8 +19,11 @@ from decoders import BeamDecoderSegm,SyncBeamDecoderSegm
 from predictors import WordCountPredictorSegm,Word2charPredictorSegm,SRILMPredictorSegm
 from output_segm import NBestOutputHandler,TextOutputHandler
 from blocks_trainers import blocks_get_default_nmt_config,blocks_get_nmt_predictor,blocks_get_nmt_vanilla_decoder
+from dynet_interface import dynet_get_nmt_predictor,dynet_get_nmt_vanilla_decoder,dynet_get_rnnlm_predictor
 
 import ui_segm as ui
+
+#from guppy import hpy
 
 #from cam.sgnmt import ui
 from cam.sgnmt import utils
@@ -172,6 +176,8 @@ def add_predictors(decoder):
 #                        "nmt_config", tf_get_default_nmt_config())
 #                    p = tf_get_nmt_predictor(
 #                        args, _get_override_args("nmt_path"), nmt_config)
+                elif nmt_engine == 'dynet':
+                        p = dynet_get_nmt_predictor(_get_override_args("nmt_path"))
                 elif nmt_engine != 'none':
                     logging.fatal("NMT engine %s is not supported (yet)!" % nmt_engine)
 #            elif pred == "t2t":
@@ -241,7 +247,8 @@ def add_predictors(decoder):
 #                                   args.srilm_convert_to_ln)
 #            elif pred == "nplm":
 #                p = NPLMPredictor(args.nplm_path, args.normalize_nplm_probs)
-#            elif pred == "rnnlm":
+            elif pred == "rnnlm":
+                p = dynet_get_rnnlm_predictor(_get_override_args("rnnlm_path"))
 #                p = tf_get_rnnlm_predictor(_get_override_args("rnnlm_path"),
 #                                           _get_override_args("rnnlm_config"),
 #                                           tf_get_rnnlm_prefix())
@@ -482,13 +489,19 @@ def construct_nmt_vanilla_decoder():
     if args.nmt_engine == 'blocks':
         get_default_nmt_config = blocks_get_default_nmt_config
         get_nmt_vanilla_decoder = blocks_get_nmt_vanilla_decoder
+        for _ in xrange(n):
+            nmt_specs.append((_get_override_args("nmt_path"),
+                        _parse_config_param("nmt_config",
+                                            get_default_nmt_config())))
+    elif args.nmt_engine == 'dynet':
+#        get_default_nmt_config = dynet_get_default_nmt_config
+        get_nmt_vanilla_decoder = dynet_get_nmt_vanilla_decoder
+        for _ in xrange(n):
+            nmt_specs.append(_get_override_args("nmt_path"))
 #    elif args.nmt_engine == 'tensorflow':
 #        get_default_nmt_config = tf_get_default_nmt_config
 #        get_nmt_vanilla_decoder = tf_get_nmt_vanilla_decoder
-    for _ in xrange(n):
-        nmt_specs.append((_get_override_args("nmt_path"),
-                          _parse_config_param("nmt_config",
-                                              get_default_nmt_config())))
+    
     return get_nmt_vanilla_decoder(args, nmt_specs)
 
 
@@ -597,7 +610,7 @@ def _get_sentence_indices(range_param, src_sentences):
 
 def _get_text_output_handler(output_handlers):
     for output_handler in output_handlers:
-        if isinstance(output_handler, TextOutputHandler):
+        if isinstance(output_handler, TextOutputHandler) or isinstance(output_handler, NBestOutputHandler):
             return output_handler
     return None
 
@@ -621,12 +634,16 @@ def do_decode(decoder,
         logging.fatal("Decoding cancelled because of an error in the "
                       "predictor configuration.")
         return
-    all_hypos = []
-    text_output_handler = _get_text_output_handler(output_handlers)
-    if text_output_handler:
-        text_output_handler.open_file()
+#    all_hypos = []
+#    text_output_handler = _get_text_output_handler(output_handlers)
+#    if text_output_handler:
+#        text_output_handler.open_file()
+    for output_handler in output_handlers:
+        output_handler.open_file()
     start_time = time.time()
     logging.info("Start time: %s" % start_time)
+#    hp = hpy()
+#    print "Heap at the beginning of the function\n", hp.heap()
     for sen_idx in _get_sentence_indices(args.range, src_sentences):
         try:
             if src_sentences is False:
@@ -657,6 +674,7 @@ def do_decode(decoder,
             except IndexError:
                 print src
             else:
+                logging.debug(u'src: {}, mapped: {}'.format(src,utils.apply_src_wmap(src)))
                 hypos = [hypo 
                          for hypo in decoder.decode(utils.apply_src_wmap(src))
                             if hypo.total_score > args.min_score]
@@ -668,8 +686,10 @@ def do_decode(decoder,
                          "time=%.2f" % (sen_idx+1,
                                         decoder.apply_predictors_count,
                                         time.time() - start_hypo_time))
-                if text_output_handler:
-                    text_output_handler.write_empty_line()
+#                if text_output_handler:
+#                    text_output_handler.write_empty_line()
+                for output_handler in output_handlers:
+                    output_handler.write_empty_line()
                 continue
             if args.remove_eos:
                 for hypo in hypos:
@@ -688,22 +708,26 @@ def do_decode(decoder,
             if utils.trg_cmap:
                 hypos = [h.convert_to_char_level(utils.trg_cmap) for h in hypos]
 #            logging.info("Decoded (ID: %d): %s" % (
-            logging.debug("Decoded (ID: %d): %s" % (
+            logging.info("Decoded (ID: %d): %s input: %s" % (
                     sen_idx+1,
                     utils.apply_trg_wmap(hypos[0].trgt_sentence, 
-                                         {} if utils.trg_cmap else utils.trg_wmap)))
+                                         {} if utils.trg_cmap else utils.trg_wmap), u" ".join(src)))
 #            logging.info("Stats (ID: %d): score=%f "
-            logging.debug("Stats (ID: %d): score=%f "
+            logging.info("Stats (ID: %d): score=%f "
                          "num_expansions=%d "
                          "time=%.2f" % (sen_idx+1,
                                         hypos[0].total_score,
                                         decoder.apply_predictors_count,
                                         time.time() - start_hypo_time))
-            all_hypos.append(hypos)
+#            all_hypos.append(hypos)
             try:
                 # Write text output as we go
-                if text_output_handler:
-                    text_output_handler.write_hypos([hypos])
+#                if text_output_handler:
+
+#                    text_output_handler.write_hypos([hypos])
+#                logging.info("Writing to file")
+                for output_handler in output_handlers:
+                    output_handler.write_hypos([hypos])
             except IOError as e:
                 logging.error("I/O error %d occurred when creating output files: %s"
                             % (sys.exc_info()[0], e))
@@ -719,12 +743,14 @@ def do_decode(decoder,
                                                        e,
                                                        traceback.format_exc()))
     logging.info("Decoding finished. Time: %.2f" % (time.time() - start_time))
+#    print "Heap at the end of the function\n", hp.heap()
     try:
         for output_handler in output_handlers:
-            if output_handler == text_output_handler:
-                output_handler.close_file()
-            else:
-                output_handler.write_hypos(all_hypos)
+            output_handler.close_file()
+#            if output_handler == text_output_handler:
+#                output_handler.close_file()
+#            else:
+#                output_handler.write_hypos(all_hypos)
     except IOError as e:
         logging.error("I/O error %s occurred when creating output files: %s"
                       % (sys.exc_info()[0], e))

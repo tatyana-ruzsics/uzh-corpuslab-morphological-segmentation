@@ -12,6 +12,7 @@ import logging
 import os
 import sys
 
+
 from cam.sgnmt import utils
 from cam.sgnmt.decoding import core
 import decode_utils_segm as decode_utils
@@ -46,6 +47,8 @@ validate_args(args)
 # Set reserved word IDs
 if args.indexing_scheme == 'blocks':
     utils.switch_to_blocks_indexing()
+elif args.indexing_scheme == 'dynet':
+    utils.switch_to_dynet_indexing()
 elif args.indexing_scheme == 'tf':
     utils.switch_to_tf_indexing()
 elif args.indexing_scheme == 't2t':
@@ -112,7 +115,7 @@ def _update_decoder(decoder, key, val):
     return decoder
 
 
-def _process_inputs():
+def _process_inputs(sync_symbol=-1):
     """Helper method to support multiple input files."""
     inputfiles = [ args.src_test ]
     while True:
@@ -125,15 +128,37 @@ def _process_inputs():
     for i in xrange(len(inputfiles)):
         with codecs.open(inputfiles[i], encoding='utf-8') as f:
             for line in f:
-                inputs_tmp[i].append(line.strip().split())
+#                logging.debug(u'utils.apply_src_wmap(sync_symbol): {}'.format(utils.apply_trg_wmap([sync_symbol])))
+                if utils.apply_trg_wmap([sync_symbol])[0]==" ":
+                    inputs_tmp[i].append([c.replace('|',' ') for c in line.strip().replace('   ',' | ').split()])
+#                    logging.debug(u'line: {}'.format(line))
+#                    logging.debug(u'mapped: {}'.format([c.replace('|',' ') for c in line.strip().replace('   ',' | ').split()]))
+                else:
+                    inputs_tmp[i].append(line.strip().split())
+
     # Gather multiple input sentences for each line
     inputs = []
     for i in xrange(len(inputs_tmp[0])):
         input_lst = []
         for j in xrange(len(inputfiles)):
             input_lst.append(inputs_tmp[j][i])
-        inputs.append(input_lst)
+            inputs.append(input_lst)
     return inputs
+
+def _process_input(sync_symbol=-1):
+    """Helper method to support multiple input files. Handles sync symbol properly if it is space"""
+    # Read the input file
+    inputs_tmp =  []
+    with codecs.open(args.src_test, encoding='utf-8') as f:
+        for line in f:
+#            logging.debug(u'utils.apply_src_wmap(sync_symbol): {}'.format(utils.apply_trg_wmap([sync_symbol])))
+            if utils.apply_trg_wmap([sync_symbol])[0]==" ":
+                inputs_tmp.append([c.replace('|',' ') for c in line.strip().replace('   ',' | ').split()])
+#                logging.debug(u'line: {}'.format(line))
+#                logging.debug(u'mapped: {}'.format([c.replace('|',' ') for c in line.strip().replace('   ',' | ').split()]))
+            else:
+                inputs_tmp.append(line.strip().split())
+    return inputs_tmp
 
 
 def _print_shell_help():
@@ -162,12 +187,13 @@ outputs = decode_utils.create_output_handlers()
 if args.input_method == 'file':
     # Check for additional input files
     if getattr(args, "src_test2"):
-        decode_utils.do_decode(decoder, outputs, _process_inputs())
+        decode_utils.do_decode(decoder, outputs, _process_inputs(args.sync_symbol))
     else:
-        with codecs.open(args.src_test, encoding='utf-8') as f:
-            decode_utils.do_decode(decoder,
-                                   outputs,
-                                   [line.strip().split() for line in f])
+        decode_utils.do_decode(decoder, outputs, _process_input(args.sync_symbol))
+#        with codecs.open(args.src_test, encoding='utf-8') as f:
+#            decode_utils.do_decode(decoder,
+#                                   outputs,
+#                                   [line.strip().split() for line in f])
 elif args.input_method == 'dummy':
     decode_utils.do_decode(decoder, outputs, False)
 else: # Interactive mode: shell or stdin
