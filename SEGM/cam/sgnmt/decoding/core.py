@@ -3,7 +3,7 @@ This is mainly ``Predictor`` and ``Decoder``. Functionality should be
 implemented mainly in the ``predictors`` package for predictors and in
 the ``decoding.decoder`` module for decoders.
 """
-from memory_profiler import profile
+#from memory_profiler import profile
 from abc import abstractmethod
 import copy
 

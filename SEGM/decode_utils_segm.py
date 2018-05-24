@@ -9,7 +9,7 @@ This script follows SGNMT decoder utils cam.sgnmt.decode_utils.py but adapted fo
 --> nmt trainers based on Blocks framework.
 """
 
-from memory_profiler import profile
+#from memory_profiler import profile
 import logging
 import sys
 import time

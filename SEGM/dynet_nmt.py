@@ -1,6 +1,6 @@
 from __future__ import division
 
-from memory_profiler import profile
+#from memory_profiler import profile
 from cam.sgnmt.decoding.core import Decoder
 from cam.sgnmt.decoding.core import Hypothesis
 from cam.sgnmt import utils

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Implementation of the beam search and "synchronized" beam search strategies used for morphological segmentation model (cED+LM)."""
 
-from memory_profiler import profile
+#from memory_profiler import profile
 import copy
 import logging
 from cam.sgnmt import utils
