@@ -308,6 +308,7 @@ class DynetNMTVanillaDecoder(Decoder):
             all_outputs = np.vstack([all_outputs, outputs[None, :]])
             logging.debug(u'all_outputs: {}'.format(all_outputs))
             logging.debug(u'outputs: {}'.format([utils.apply_trg_wmap([c]) for c in outputs]))
+            logging.debug(u'indexes: {}'.format(indexes))
             logging.debug(u'chosen_costs: {}'.format(chosen_costs))
             logging.debug(u'outputs != STOP: {}'.format(outputs != STOP))
             all_costs = np.vstack([all_costs, chosen_costs[None, :]])
@@ -419,7 +420,7 @@ class DynetNMTEnsembleDecoder(Decoder):
         """
         dy.renew_cg()
         logging.debug(u'src_sentence: {}'.format(src_sentence))
-        MAX_PRED_SEQ_LEN = 3*len(src_sentence)
+        MAX_PRED_SEQ_LEN = 30#3*len(src_sentence)
         beam_size = self.beam_size
         nmt_models = self.nmt_models
         
@@ -440,6 +441,7 @@ class DynetNMTEnsembleDecoder(Decoder):
 
         for i in range(MAX_PRED_SEQ_LEN):
             if all_masks[-1].sum() == 0:
+                logging.debug(u'check masks: {}'.format(all_masks[-1]))
                 break
         
             # We carefully hack values of the `logprobs` array to ensure
@@ -472,6 +474,7 @@ class DynetNMTEnsembleDecoder(Decoder):
             all_outputs = np.vstack([all_outputs, outputs[None, :]])
             logging.debug(u'all_outputs: {}'.format(all_outputs))
             logging.debug(u'outputs: {}'.format([utils.apply_trg_wmap([c]) for c in outputs]))
+            logging.debug(u'indexes: {}'.format(indexes))
             logging.debug(u'chosen_costs: {}'.format(chosen_costs))
             logging.debug(u'outputs != STOP: {}'.format(outputs != STOP))
             all_costs = np.vstack([all_costs, chosen_costs[None, :]])
@@ -479,6 +482,7 @@ class DynetNMTEnsembleDecoder(Decoder):
             #        if ignore_first_eol: # and i == 0:
             #            mask[:] = 1
             all_masks = np.vstack([all_masks, mask[None, :]])
+            logging.debug(u'last masks: {}'.format(all_masks[-1]))
 
         all_outputs = all_outputs[1:] # skipping first row of self.BEGIN
         logging.debug(u'outputs: {}'.format(all_outputs))

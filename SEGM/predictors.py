@@ -123,16 +123,21 @@ class SRILMPredictorSegm(SRILMPredictor):
         if eow==1:
             # Score for the end of word symbol:
             # logP(second-last-morf last-morf morf </s>) = logP(second-last-morf last-morf morf) + logP(last-morf morf </s>)
-            prefix_eos = "%s " % ' '.join(self.history[1:])
-            logging.debug(u"prefix {} w {}".format(prefix,str(morphemes)))
-            logging.debug(u"prefix_eos {} w[0]: {}".format(prefix_eos,str((morphemes))))
-            prob = {w: (getNgramProb(self.lm, prefix + str(w), order) + getNgramProb(self.lm, prefix_eos + str(w) + " </s>", order)) * scaling_factor for w in morphemes}
+            prefix_eos = "%s " % ' '.join(self.history[1:]) if len(self.history) > self.history_len else "%s " % ' '.join(self.history)
+            order_eos = order+1
+            logging.debug(u"prefix {} w {} score {}".format(prefix,str(morphemes[0]),getNgramProb(self.lm, prefix + str(morphemes[0]), order)))
+            
+            logging.debug(u"prefix_eos {} w[0]: {} score {}".format(prefix_eos,str(morphemes[0]),getNgramProb(self.lm, prefix_eos + str(morphemes) + " </s>", order_eos)))
+            
+            prob = {w: (getNgramProb(self.lm, prefix + str(w), order) + getNgramProb(self.lm, prefix_eos + str(w) + " </s>", order_eos)) * scaling_factor for w in morphemes}
                     
         else:
+            logging.debug(u"prefix {} w: {} score {}".format(prefix,str(morphemes[0]),getNgramProb(self.lm, prefix + str(morphemes[0]), order)))
             # Score for the segmentation boundary symbol:
             prob = {w: getNgramProb(self.lm, prefix + str(w), order) * scaling_factor for w in morphemes}
 
         return prob
+
 
 class WordCountPredictorSegm(WordCountPredictor):
     """This predictor adds the relative difference between src word and its predicted segmentation (in chars). """

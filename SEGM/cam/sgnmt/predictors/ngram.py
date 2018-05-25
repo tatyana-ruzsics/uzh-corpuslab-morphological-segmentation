@@ -11,6 +11,7 @@ https://github.com/desilinguist/swig-srilm
 from cam.sgnmt.predictors.core import UnboundedVocabularyPredictor
 from cam.sgnmt import utils
 import math
+import logging
 
 try:
     # Requires swig-srilm
@@ -66,12 +67,15 @@ class SRILMPredictor(UnboundedVocabularyPredictor):
             dict. Language model scores for the words in ``words``
         """
         prefix = "%s " % ' '.join(self.history)
+        logging.debug(u'LM over chars prefix: {}'.format(prefix))
+        
         order = len(self.history) + 1
         scaling_factor = math.log(10) if self.convert_to_ln else 1.0
         ret = {w: getNgramProb(
                         self.lm,
                         prefix + ("</s>" if w == utils.EOS_ID else str(w)),
                         order) * scaling_factor for w in words}
+        logging.debug(u'LM over chars distribution: {}'.format(ret))
         return ret
     
         

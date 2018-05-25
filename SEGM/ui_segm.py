@@ -1044,7 +1044,13 @@ def get_parser():
     group.add_argument("--normalize_nplm_probs", default=False, type='bool',
                         help="Whether to normalize nplm probabilities over "
                         "the current unbounded predictor vocabulary.")
-    
+
+    group = parser.add_argument_group('(Neural) LM predictor options')
+    group.add_argument("--srilmchar_path", default="lm/ngram.lm.gz",
+                       help="Path to the ngram LM file in SRILM format")
+    group.add_argument("--srilmchar_order", default=5, type=int,
+                      help="Order of ngram for srilm predictor")
+
     # Automaton predictors
     group = parser.add_argument_group('FST and RTN predictor options')
     group.add_argument("--fst_path", default="fst/%d.fst",

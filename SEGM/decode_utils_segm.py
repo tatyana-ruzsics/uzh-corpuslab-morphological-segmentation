@@ -16,7 +16,7 @@ import time
 import traceback
 
 from decoders import BeamDecoderSegm,SyncBeamDecoderSegm
-from predictors import WordCountPredictorSegm,Word2charPredictorSegm,SRILMPredictorSegm
+from predictors import WordCountPredictorSegm,Word2charPredictorSegm,SRILMPredictorSegm,SRILMPredictor
 from output_segm import NBestOutputHandler,TextOutputHandler
 from blocks_trainers import blocks_get_default_nmt_config,blocks_get_nmt_predictor,blocks_get_nmt_vanilla_decoder
 from dynet_interface import dynet_get_nmt_predictor,dynet_get_nmt_vanilla_decoder,dynet_get_rnnlm_predictor
@@ -241,6 +241,8 @@ def add_predictors(decoder):
 #                                 rmeps=args.remove_epsilon_in_rtns)
             elif pred == "srilm":
                 p = SRILMPredictorSegm(_get_override_args("srilm_path"), _get_override_args("srilm_order"), args.srilm_convert_to_ln)
+            elif  pred == "srilmchar":
+                p = SRILMPredictor(_get_override_args("srilmchar_path"), _get_override_args("srilmchar_order"), args.srilm_convert_to_ln)
             #p = SRILMPredictorSegm(args.srilm_path, args.srilm_order, args.srilm_convert_to_ln)
 #                p = SRILMPredictor(args.srilm_path, 
 #                                   args.srilm_order, 

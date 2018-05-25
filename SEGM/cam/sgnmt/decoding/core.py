@@ -585,9 +585,12 @@ class Decoder(Observable):
         posteriors = []
         unk_probs = []
         bounded_idx = 0
-        for (p, _) in self.predictors:
+        for j,(p, _) in enumerate(self.predictors):
             if isinstance(p, UnboundedVocabularyPredictor):
+                logging.debug(u'non zero words: {}'.format(non_zero_words))
+                logging.debug(u'posterior name: {}'.format(self.predictor_names[j]))
                 posterior = p.predict_next(non_zero_words)
+                logging.debug(u'posterior: {}'.format(posterior))
             else: # Take it from the bounded_* variables
                 posterior = bounded_posteriors[bounded_idx]
                 bounded_idx += 1
