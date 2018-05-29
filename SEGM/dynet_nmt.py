@@ -5,7 +5,7 @@ from cam.sgnmt.decoding.core import Decoder
 from cam.sgnmt.decoding.core import Hypothesis
 from cam.sgnmt import utils
 from cam.sgnmt.predictors.core import Predictor
-from vocab_builder import build_vocabulary, Vocab
+#from vocab_builder import build_vocabulary, Vocab
 
 import codecs
 import numpy as np
@@ -48,8 +48,8 @@ class DynetNMTPredictor(Predictor):
     
         self.pc = dy.ParameterCollection()
         
-        print 'Loading vocabulary from {}:'.format(self.hyperparams['VOCAB_PATH'])
-        self.vocab = Vocab.from_file(self.hyperparams['VOCAB_PATH'])
+#        print 'Loading vocabulary from {}:'.format(self.hyperparams['VOCAB_PATH'])
+#        self.vocab = Vocab.from_file(self.hyperparams['VOCAB_PATH'])
 #        BEGIN_CHAR   = u'<s>'
 #        STOP_CHAR   = u'</s>'
 #        UNK_CHAR = u'<unk>'
@@ -59,8 +59,8 @@ class DynetNMTPredictor(Predictor):
         self.BEGIN = utils.GO_ID
         self.STOP = utils.EOS_ID
         self.UNK = utils.UNK_ID
-        self.hyperparams['VOCAB_SIZE'] = self.vocab.size()
-        
+#        self.hyperparams['VOCAB_SIZE'] = self.vocab.size()
+
         print 'Model Hypoparameters:'
         for k, v in self.hyperparams.items():
             print '{:20} = {}'.format(k, v)
@@ -111,7 +111,7 @@ class DynetNMTPredictor(Predictor):
         logging.debug(u'NMT initialized with input: {}'.format(input))
             
         self.consumed = []#SGNMT
-        self.logprobs = np.zeros(self.vocab.size())
+#        self.logprobs = np.zeros(self.vocab.size())
 
 
 
@@ -324,7 +324,7 @@ class DynetNMTVanillaDecoder(Decoder):
         all_costs = all_costs[1:] - all_costs[:-1] #turn cumulative cost ito cost of each step #?actually the last row would suffice for us?
         result = all_outputs, all_masks, all_costs
         
-        trans, costs = self.result_to_lists(self.nmt_model.vocab, result)
+        trans, costs = self.result_to_lists(result)#self.nmt_model.vocab, result)
         logging.debug(u'trans: {}'.format(trans))
         hypos = []
         max_len = 0
@@ -364,7 +364,7 @@ class DynetNMTVanillaDecoder(Decoder):
         return np.unravel_index(args, matrix.shape), flatten[args]
 
     @staticmethod
-    def result_to_lists(nmt_vocab, result):
+    def result_to_lists(result): #(nmt_vocab, result):
         outputs, masks, costs = [array.T for array in result]
         outputs = [list(output[:int(mask.sum())]) for output, mask in zip(outputs, masks)]
 #        words = [u''.join([nmt_vocab.i2w.get(pred_id,UNK_CHAR) for pred_id in output]) for output in outputs]
@@ -424,7 +424,7 @@ class DynetNMTEnsembleDecoder(Decoder):
         beam_size = self.beam_size
         nmt_models = self.nmt_models
         
-        nmt_vocab = nmt_models[0].vocab # same vocab file for all nmt_models!!
+#        nmt_vocab = nmt_models[0].vocab # same vocab file for all nmt_models!!
 #        BEGIN   = nmt_vocab.w2i[BEGIN_CHAR]
         BEGIN = utils.GO_ID
         STOP = utils.EOS_ID
@@ -491,7 +491,7 @@ class DynetNMTEnsembleDecoder(Decoder):
         all_costs = all_costs[1:] - all_costs[:-1] #turn cumulative cost ito cost of each step #?actually the last row would suffice for us?
         result = all_outputs, all_masks, all_costs
 
-        trans, costs = DynetNMTVanillaDecoder.result_to_lists(nmt_vocab,result)
+        trans, costs = DynetNMTVanillaDecoder.result_to_lists(result)#(nmt_vocab,result)
         logging.debug(u'trans: {}'.format(trans))
         hypos = []
         max_len = 0
