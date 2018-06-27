@@ -911,7 +911,7 @@ public class IntermediateOptimizer implements Runnable
 
 //    cleanupMemory();
 
-    println("+++ Optimization of lambda[j=" + j + "] starting @ " + (new Date()) + " +++",1);
+    //println("+++ Optimization of lambda[j=" + j + "] starting @ " + (new Date()) + " +++",1);
 
     double[] currLambda = new double[1+numParams];
     System.arraycopy(initialLambda,1,currLambda,1,numParams);
@@ -933,9 +933,9 @@ public class IntermediateOptimizer implements Runnable
     if (optimizeSubset) initialScore = evalMetric.score(best1Cand_suffStats_doc,docSubset_firstRank,docSubset_lastRank);
     else initialScore = evalMetric.score(best1Cand_suffStats_doc);
 
-    println("Initial lambda[j=" + j + "]: " + lambdaToString(initialLambda),1);
-    println("(Initial " + metricName_display + "[j=" + j + "]: " + initialScore + ")",1);
-      println("Optimize: " + optimizeSubset);
+    //println("Initial lambda[j=" + j + "]: " + lambdaToString(initialLambda),1);
+    //println("(Initial " + metricName_display + "[j=" + j + "]: " + initialScore + ")",1);
+      //println("Optimize: " + optimizeSubset);
     println("",1);
     finalScore[j] = initialScore;
 

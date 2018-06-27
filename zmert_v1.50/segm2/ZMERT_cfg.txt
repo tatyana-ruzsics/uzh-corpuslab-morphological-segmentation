@@ -3,7 +3,7 @@
 -r	dev.trg                     # target sentences file name (in this case, file name prefix)
 #-rps	4                       # references per sentence
 -p	params.txt              # parameter file
--m	01LOSS          # evaluation metric and its options
+-m	BLEU 1 closest       # evaluation metric and its options
 -maxIt	5                      # maximum MERT iterations
 -ipi	100                      # number of intermediate initial points per iteration
 -cmd	./SDecoder_cmd          # file containing commands to run decoder

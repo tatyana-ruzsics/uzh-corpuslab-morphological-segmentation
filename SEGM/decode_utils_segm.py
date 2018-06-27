@@ -650,7 +650,7 @@ def do_decode(decoder,
         try:
             if src_sentences is False:
                 src = "0"
-                logging.info("Next sentence (ID: %d)" % (sen_idx+1))
+                logging.debug("Next sentence (ID: %d)" % (sen_idx+1))
             else:
                 src = src_sentences[sen_idx]
 #                if isinstance(src[0], list):
@@ -710,12 +710,12 @@ def do_decode(decoder,
             if utils.trg_cmap:
                 hypos = [h.convert_to_char_level(utils.trg_cmap) for h in hypos]
 #            logging.info("Decoded (ID: %d): %s" % (
-            logging.info("Decoded (ID: %d): %s input: %s" % (
+            logging.debug("Decoded (ID: %d): %s input: %s" % (
                     sen_idx+1,
                     utils.apply_trg_wmap(hypos[0].trgt_sentence, 
                                          {} if utils.trg_cmap else utils.trg_wmap), u" ".join(src)))
 #            logging.info("Stats (ID: %d): score=%f "
-            logging.info("Stats (ID: %d): score=%f "
+            logging.debug("Stats (ID: %d): score=%f "
                          "num_expansions=%d "
                          "time=%.2f" % (sen_idx+1,
                                         hypos[0].total_score,

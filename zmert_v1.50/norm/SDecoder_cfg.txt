@@ -1,0 +1,11 @@
+cands_file=nbest.txt
+cands_per_sen=12
+top_n=12
+
+nmt1 .20
+nmt2 .20
+nmt3 .20
+nmt4 .20
+nmt5 .20
+wc 1.0
+lm 0.1

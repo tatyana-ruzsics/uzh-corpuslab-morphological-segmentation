@@ -1443,6 +1443,10 @@ public double[] run_single_iteration(
                 OutputStreamWriter outStreamWriter_dec_dev = new OutputStreamWriter(outStream_dec_dev, "utf8");
                 BufferedWriter bw_decoder_dev = new BufferedWriter(outStreamWriter_dec_dev);
                 writeLine(b_cmd,bw_decoder_dev);
+                     
+                bw_decoder_dev.close();
+                
+                     
                 
                 cmd = decoderCommandFileName+".temp";
                 
@@ -3284,6 +3288,9 @@ i ||| words of candidate translation . ||| feat-1_val feat-2_val ... feat-numPar
             OutputStreamWriter outStreamWriter_dec = new OutputStreamWriter(outStream_dec, "utf8");
             BufferedWriter bw_decoder = new BufferedWriter(outStreamWriter_dec);
             DMC.writeLine(b_cmd1,bw_decoder);
+                
+            bw_decoder.close();
+            br_decoder.close();
             
             cmd1 = DMC.decoderCommandFileName_TEST+".temp";
 

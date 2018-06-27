@@ -123,16 +123,20 @@ class SRILMPredictorSegm(SRILMPredictor):
         if eow==1:
             # Score for the end of word symbol:
             # logP(second-last-morf last-morf morf </s>) = logP(second-last-morf last-morf morf) + logP(last-morf morf </s>)
-            prefix_eos = "%s " % ' '.join(self.history[1:]) if len(self.history) > self.history_len else "%s " % ' '.join(self.history)
-            order_eos = order+1
-            logging.debug(u"prefix {} w {} score {}".format(prefix,str(morphemes[0]),getNgramProb(self.lm, prefix + str(morphemes[0]), order)))
+            #prefix_eos = "%s " % ' '.join(self.history[1:]) if len(self.history) > self.history_len else "%s " % ' '.join(self.history)
+            prefix_eos = "%s " % ' '.join(self.history[1:]) if len(self.history) == self.history_len else "%s " % ' '.join(self.history)
+            #prefix_eos = "%s " % ' '.join(self.history[1:])
+            #order_eos = order+1
+            order_eos = order if len(self.history) == self.history_len else order+1
+            #order_eos = order
+            logging.debug(u"prefix: {} w: {} order: {} score {}".format(prefix + str(morphemes[0]),str(morphemes[0]),order,getNgramProb(self.lm, prefix + str(morphemes[0]), order)))
             
-            logging.debug(u"prefix_eos {} w[0]: {} score {}".format(prefix_eos,str(morphemes[0]),getNgramProb(self.lm, prefix_eos + str(morphemes) + " </s>", order_eos)))
+            logging.debug(u"prefix_eos: {} w: {} order: {} score {}".format(prefix_eos + str(morphemes[0]) + " </s>", " </s>",order_eos, getNgramProb(self.lm, prefix_eos + str(morphemes[0]) + " </s>", order_eos)))
             
             prob = {w: (getNgramProb(self.lm, prefix + str(w), order) + getNgramProb(self.lm, prefix_eos + str(w) + " </s>", order_eos)) * scaling_factor for w in morphemes}
                     
         else:
-            logging.debug(u"prefix {} w: {} score {}".format(prefix,str(morphemes[0]),getNgramProb(self.lm, prefix + str(morphemes[0]), order)))
+            logging.debug(u"prefix: {} w: {} score {}".format(prefix,str(morphemes[0]),getNgramProb(self.lm, prefix + str(morphemes[0]), order)))
             # Score for the segmentation boundary symbol:
             prob = {w: getNgramProb(self.lm, prefix + str(w), order) * scaling_factor for w in morphemes}
 

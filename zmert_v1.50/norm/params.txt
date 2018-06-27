@@ -1,0 +1,8 @@
+nmt1	|||	.20	Fix	0	+1	0	+1
+nmt2	|||	.20	Fix	0	+1	0	+1
+nmt3	|||	.20	Fix	0	+1	0	+1
+nmt4	|||	.20	Fix	0	+1	0	+1
+nmt5	|||	.20	Fix	0	+1	0	+1
+wc	|||	1.0	Opt	0	+Inf	0	+3
+lm	|||	0.1	Opt	0	+Inf	0	+1
+normalization = none

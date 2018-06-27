@@ -1,6 +1,6 @@
 ### Commonly used parameters
 #-dir	???                     # working directory (i.e. location of relevant files)
--r	dev.trg                     # target sentences file name (in this case, file name prefix)
+-r	dev.segs                     # target sentences file name (in this case, file name prefix)
 #-rps	4                       # references per sentence
 -p	params.txt              # parameter file
 -m	01LOSS          # evaluation metric and its options
